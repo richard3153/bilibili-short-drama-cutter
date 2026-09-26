@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B站短剧剪辑工作站</title>
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --panel: #1a1a2e;
+      --border: #2a2a4a;
+      --text: #e0e0f0;
+      --text2: #8888aa;
+      --accent: #00a1d6;
+      --accent2: #fb7299;
+      --green: #00b894;
+      --warn: #fdcb6e;
+      --red: #d63031;
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .logo-icon { font-size: 36px; }
+    .logo h1 { font-size: 22px; color: var(--accent); }
+    .logo .subtitle { font-size: 13px; color: var(--text2); }
+    .status {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--panel); padding: 8px 16px; border-radius: 20px;
+    }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); }
+    .status-dot.busy { background: var(--warn); animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.4; } }
+
+    /* Folder bar */
+    .folder-bar {
+      display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .folder-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--panel); border: 1px solid var(--border);
+      color: var(--text); padding: 10px 18px; border-radius: 8px;
+      cursor: pointer; font-size: 14px; transition: all 0.2s;
+    }
+    .folder-btn:hover { border-color: var(--accent); background: #1e1e3a; }
+    .badge {
+      background: var(--accent); color: #fff; border-radius: 10px;
+      padding: 2px 8px; font-size: 12px;
+    }
+
+    /* Drama list */
+    .section { margin-bottom: 24px; }
+    .section-title {
+      font-size: 16px; font-weight: 600; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .drama-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .drama-card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .drama-card:hover { border-color: var(--accent2); }
+    .drama-card.selected { border-color: var(--accent2); background: #2a1a30; }
+    .drama-card .name { font-weight: 600; margin-bottom: 4px; }
+    .drama-card .count { font-size: 12px; color: var(--text2); }
+
+    /* Panels */
+    .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .panel {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+    }
+    .panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px; font-size: 14px;
+    }
+    .panel-title { font-weight: 600; }
+
+    /* Config section */
+    .config-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px; margin-bottom: 24px;
+    }
+    .config-item { display: flex; flex-direction: column; gap: 4px; }
+    .config-item label { font-size: 12px; color: var(--text2); font-weight: 600; }
+    .config-item select, .config-item input {
+      background: var(--panel); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 14px;
+    }
+    .config-item select:focus, .config-item input:focus {
+      border-color: var(--accent); outline: none;
+    }
+
+    /* Buttons */
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 28px; border-radius: 8px; border: none;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent2); color: #fff; }
+    .btn-primary:hover { background: #ff8eaa; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--accent); }
+
+    /* Log area */
+    .log-area {
+      background: #080812; border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; max-height: 400px;
+      overflow-y: auto; font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 13px; line-height: 1.6; margin-top: 20px;
+    }
+    .log-line { white-space: pre-wrap; word-break: break-all; }
+    .log-line.warn { color: var(--warn); }
+    .log-line.error { color: var(--red); }
+    .log-line.success { color: var(--green); }
+
+    /* Compliance badge */
+    .compliance-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;
+    }
+    .compliance-badge.good { background: #004d40; color: var(--green); }
+    .compliance-badge.warn { background: #4d3b00; color: var(--warn); }
+
+    .empty { text-align: center; color: var(--text2); padding: 20px; font-size: 13px; }
+
+    /* B站特色指示 */
+    .bili-features {
+      display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .bili-tag {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 14px; border-radius: 20px;
+      background: var(--panel); border: 1px solid var(--border);
+      font-size: 12px; color: var(--text2);
+    }
+    .bili-tag .icon { font-size: 16px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <span class="logo-icon">📺</span>
+      <div>
+        <h1>B站短剧剪辑工作站</h1>
+        <p class="subtitle">16:9 横屏 · B站合规 · AI全自动 · 批量处理</p>
+      </div>
+    </div>
+    <div class="status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">就绪</span>
+    </div>
+  </header>
+
+  <!-- B站特色功能指示 -->
+  <div class="bili-features">
+    <div class="bili-tag"><span class="icon">🎯</span> B站16:9横屏</div>
+    <div class="bili-tag"><span class="icon">🛡️</span> 社区规范合规</div>
+    <div class="bili-tag"><span class="icon">🔔</span> 片尾三连引导</div>
+    <div class="bili-tag"><span class="icon">🏷️</span> B站分区/标签</div>
+    <div class="bili-tag"><span class="icon">🤖</span> AI辅助声明</div>
+  </div>
+
+  <!-- 文件夹快捷入口 -->
+  <div class="folder-bar">
+    <button class="folder-btn" onclick="openFolder('raw')">
+      <span>📁</span> 原视频 <span class="badge" id="badgeRaw">0</span>
+    </button>
+    <button class="folder-btn" onclick="openFolder('bgm')">
+      <span>🎵</span> BGM库 <span class="badge" id="badgeBgm">0</span>
+    </button>
+    <button class="folder-btn" onclick="openFolder('output')">
+      <span>🎞️</span> 成片 <span class="badge" id="badgeOut">0</span>
+    </button>
+  </div>
+
+  <!-- 剧目选择 -->
+  <div class="section">
+    <div class="section-title">
+      📺 剧目列表
+      <button class="btn-secondary" style="padding:4px 12px;font-size:11px;"
+              onclick="selectAllDramas()">全选</button>
+      <button class="btn-secondary" style="padding:4px 12px;font-size:11px;"
+              onclick="selectNoneDramas()">清空</button>
+      <span style="font-size:12px;color:var(--text2);" id="dramaSelCount">已选 0 部</span>
+    </div>
+    <div class="drama-grid" id="dramaList">
+      <div class="empty">将视频放入 raw_videos/ 或 raw_videos/剧名/ 目录</div>
+    </div>
+  </div>
+
+  <!-- 配置面板 -->
+  <div class="section">
+    <div class="section-title">⚙️ 剪辑参数</div>
+    <div class="config-grid">
+      <div class="config-item">
+        <label>画幅比例</label>
+        <select id="cfgAspect">
+          <option value="16:9" selected>16:9 (B站标准)</option>
+          <option value="9:16">9:16 (竖屏) - B站不推荐</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>输出分辨率</label>
+        <select id="cfgRes">
+          <option value="1920x1080" selected>1920×1080 (Full HD)</option>
+          <option value="1280x720">1280×720 (HD)</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>最小成片时长</label>
+        <select id="cfgMinDur">
+          <option value="60">60秒 (短剧标准)</option>
+          <option value="120">120秒 (推荐)</option>
+          <option value="180">180秒 (3分钟)</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>最大成片时长</label>
+        <select id="cfgMaxDur">
+          <option value="300">5分钟</option>
+          <option value="600" selected>10分钟 (B站推荐)</option>
+          <option value="900">15分钟</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>卡点灵敏度</label>
+        <select id="cfgBeat">
+          <option value="0.6">低 (柔和转场)</option>
+          <option value="0.8" selected>中 (推荐)</option>
+          <option value="0.95">高 (强节奏)</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>BGM音量</label>
+        <select id="cfgBgmVol">
+          <option value="0.10">10% (人声突出)</option>
+          <option value="0.15" selected>15% (推荐)</option>
+          <option value="0.25">25% (BGM明显)</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>片尾引导卡</label>
+        <select id="cfgEndingCard">
+          <option value="true" selected>✅ 开启 (关注/三连引导)</option>
+          <option value="false">❌ 关闭</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="btn-row">
+    <button class="btn btn-primary" id="btnCut" onclick="startCut()">
+      🚀 开始B站剪辑
+    </button>
+    <button class="btn btn-secondary" id="btnTest" onclick="runTest()">
+      🧪 环境检测
+    </button>
+    <button class="btn btn-secondary" onclick="refreshAll()">🔄 刷新</button>
+  </div>
+
+  <!-- 日志输出 -->
+  <div class="log-area" id="logArea">
+    <div class="log-line" style="color:var(--text2);">📺 B站短剧剪辑工作站已就绪</div>
+    <div class="log-line" style="color:var(--text2);">📐 默认画幅: 16:9 (1920×1080) | 调用抖音项目共享模型</div>
+  </div>
+</div>
+
+<script>
+// State
+let selectedDramas = new Set();
+let eventSource = null;
+
+// Init
+document.addEventListener('DOMContentLoaded', refreshAll);
+
+async function refreshAll() {
+  try {
+    let r = await fetch('/api/dramas');
+    let dramas = await r.json();
+    renderDramas(dramas);
+
+    r = await fetch('/api/status');
+    let s = await r.json();
+    document.getElementById('badgeRaw').textContent = s.raw_count;
+    document.getElementById('badgeBgm').textContent = s.bgm_count;
+    document.getElementById('badgeOut').textContent = s.out_count;
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function renderDramas(dramas) {
+  let el = document.getElementById('dramaList');
+  if (!dramas.length) {
+    el.innerHTML = '<div class="empty">将视频放入 raw_videos/ 目录，支持 raw_videos/剧名/ 子目录</div>';
+    return;
+  }
+  el.innerHTML = dramas.map(d => {
+    let sel = selectedDramas.has(d.name) ? ' selected' : '';
+    return `<div class="drama-card${sel}" onclick="toggleDrama('${d.name}', this)">
+      <div class="name">📺 ${d.name}</div>
+      <div class="count">${d.count} 个视频</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDrama(name, card) {
+  if (selectedDramas.has(name)) {
+    selectedDramas.delete(name);
+    card.classList.remove('selected');
+  } else {
+    selectedDramas.add(name);
+    card.classList.add('selected');
+  }
+  document.getElementById('dramaSelCount').textContent = `已选 ${selectedDramas.size} 部`;
+}
+
+function selectAllDramas() {
+  document.querySelectorAll('.drama-card').forEach(c => {
+    let name = c.querySelector('.name').textContent.replace('📺 ', '').trim();
+    selectedDramas.add(name);
+    c.classList.add('selected');
+  });
+  document.getElementById('dramaSelCount').textContent = `已选 ${selectedDramas.size} 部`;
+}
+
+function selectNoneDramas() {
+  selectedDramas.clear();
+  document.querySelectorAll('.drama-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('dramaSelCount').textContent = '已选 0 部';
+}
+
+async function openFolder(dir) {
+  await fetch('/api/open-folder?dir=' + dir);
+}
+
+function addLog(text, cls) {
+  let area = document.getElementById('logArea');
+  let line = document.createElement('div');
+  line.className = 'log-line' + (cls ? ' ' + cls : '');
+  line.textContent = text;
+  area.appendChild(line);
+  area.scrollTop = area.scrollHeight;
+
+  // Keep ~200 max lines
+  while (area.children.length > 200) {
+    area.removeChild(area.firstChild);
+  }
+}
+
+function setStatus(busy) {
+  let dot = document.getElementById('statusDot');
+  let text = document.getElementById('statusText');
+  let btn = document.getElementById('btnCut');
+  if (busy) {
+    dot.classList.add('busy');
+    text.textContent = '剪辑中...';
+    btn.disabled = true;
+  } else {
+    dot.classList.remove('busy');
+    text.textContent = '就绪';
+    btn.disabled = false;
+  }
+}
+
+function startCut() {
+  let dramas = Array.from(selectedDramas);
+  if (!dramas.length) {
+    addLog('⚠️ 请先选择要处理的剧目', 'warn');
+    return;
+  }
+
+  setStatus(true);
+  let area = document.getElementById('logArea');
+  area.innerHTML = '';
+  addLog('🚀 开始B站短剧批量剪辑...');
+  addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+  // SSE stream
+  fetch('/api/cut', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      selected_dramas: dramas,
+      aspect: document.getElementById('cfgAspect').value,
+      res: document.getElementById('cfgRes').value,
+      min_dur: document.getElementById('cfgMinDur').value,
+      max_dur: document.getElementById('cfgMaxDur').value,
+      beat: document.getElementById('cfgBeat').value,
+      bgm_vol: document.getElementById('cfgBgmVol').value,
+      ending_card: document.getElementById('cfgEndingCard').value,
+    })
+  }).then(response => {
+    let reader = response.body.getReader();
+    let decoder = new TextDecoder();
+    let buffer = '';
+
+    function read() {
+      reader.read().then(({done, value}) => {
+        if (done) {
+          setStatus(false);
+          addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          addLog('✅ 所有处理完成', 'success');
+          refreshAll();
+          return;
+        }
+        buffer += decoder.decode(value, {stream: true});
+        let lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (let line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              let msg = JSON.parse(line.slice(6));
+              let cls = '';
+              if (msg.type === 'error') cls = 'error';
+              else if (msg.type === 'done') { cls = 'success'; setStatus(false); setTimeout(refreshAll, 1000); }
+              else if (msg.text && msg.text.includes('⚠')) cls = 'warn';
+              else if (msg.text && msg.text.includes('✅')) cls = 'success';
+              addLog(msg.text || msg.type, cls);
+            } catch(e) {}
+          }
+        }
+        read();
+      });
+    }
+    read();
+  }).catch(err => {
+    addLog('❌ 连接失败: ' + err, 'error');
+    setStatus(false);
+  });
+}
+
+async function runTest() {
+  let area = document.getElementById('logArea');
+  area.innerHTML = '';
+  addLog('🧪 运行环境检测...', '');
+  try {
+    let r = await fetch('/api/test');
+    let results = await r.json();
+    for (let [key, val] of Object.entries(results)) {
+      let icon = val ? '✅' : '❌';
+      addLog(`  ${icon} ${key}: ${val}`, val ? 'success' : 'error');
+    }
+    addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', '');
+    let allOk = Object.values(results).every(v => !!v);
+    addLog(allOk ? '✅ 环境一切正常,可开始剪辑!' : '❌ 部分依赖缺失,请检查', allOk ? 'success' : 'error');
+  } catch(e) {
+    addLog('❌ 检测失败: ' + e, 'error');
+  }
+}
+
+function stopCut() { setStatus(false); addLog('⏹ 已停止', 'warn'); }
+</script>
+</body>
+</html>
