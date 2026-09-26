@@ -19,18 +19,14 @@ from pathlib import Path
 # ============================================================
 # 路径设置：将抖音项目加入sys.path以便导入共享模块
 # ============================================================
-_DOUYIN_WORK_DIR = Path("/Users/ffzwai/.qclaw/workspace/douyin-short-drama-cutter")
 _BILI_WORK_DIR = Path(__file__).parent.resolve()
 
-# 确保b站目录在path最前面
+# 确保b站目录在path最前面（共享模块已内置在本目录，无需依赖抖音）
 if str(_BILI_WORK_DIR) not in sys.path:
     sys.path.insert(0, str(_BILI_WORK_DIR))
-# 抖音项目path放在后面，这样B站专属模块优先
-if str(_DOUYIN_WORK_DIR) not in sys.path:
-    sys.path.append(str(_DOUYIN_WORK_DIR))
 
-# 共享venv
-_VENV_SP = str(_DOUYIN_WORK_DIR / ".venv" / "lib" / "python3.11" / "site-packages")
+# 本目录自带 .venv（符号链接到本地虚拟环境）
+_VENV_SP = str(_BILI_WORK_DIR / ".venv" / "lib" / "python3.11" / "site-packages")
 if _VENV_SP not in sys.path:
     sys.path.insert(0, _VENV_SP)
 

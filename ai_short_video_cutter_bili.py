@@ -23,13 +23,11 @@ from typing import List, Dict, Tuple, Optional, Any
 # 路径：B站目录优先 + 共享 venv + 原引擎
 # ============================================================
 _BILI_DIR        = Path(__file__).parent.resolve()
-_DOUYIN_DIR      = Path("/Users/ffzwai/.qclaw/workspace/douyin-short-drama-cutter")
-_DOUYIN_VENV_SP  = str(_DOUYIN_DIR / ".venv" / "lib" / "python3.11" / "site-packages")
+_VENV_SP         = str(_BILI_DIR / ".venv" / "lib" / "python3.11" / "site-packages")
 
 sys.path.insert(0, str(_BILI_DIR))
-sys.path.insert(0, str(_DOUYIN_DIR))
-if _DOUYIN_VENV_SP not in sys.path:
-    sys.path.insert(0, _DOUYIN_VENV_SP)
+if _VENV_SP not in sys.path:
+    sys.path.insert(0, _VENV_SP)
 
 # ---- 导入 B站专属合规模块 ----
 from bilibili_compliance_checker import check_bilibili_compliance as _bili_compliance

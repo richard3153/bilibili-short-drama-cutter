@@ -100,7 +100,7 @@ signal.signal(signal.SIGFPE, signal_handler)   # Floating point exception
 
 # 工作目录 + 共享资源路径（必须在 TTS/ASR 导入之前）
 WORK_DIR = Path(__file__).parent.resolve()
-_SHARE_DIR = Path("/Users/ffzwai/.qclaw/workspace/douyin-short-drama-cutter")
+_SHARE_DIR = WORK_DIR  # 共享模块(asr/tts/config等)已内置在本目录，无需依赖抖音
 if str(_SHARE_DIR) not in sys.path:
     sys.path.insert(0, str(_SHARE_DIR))  # 导入 asr_whisper_cpp_wrapper/tts_chattts_wrapper 等
 

@@ -2,7 +2,7 @@
 # B站短剧AI剪辑工具 - Web可视化界面启动脚本
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SHARED_VENV="$SCRIPT_DIR/../douyin-short-drama-cutter/.venv"
+SHARED_VENV="$SCRIPT_DIR/.venv"
 
 PYTHON="$SHARED_VENV/bin/python3"
 if [ ! -f "$PYTHON" ]; then

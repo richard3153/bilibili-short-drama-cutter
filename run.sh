@@ -3,7 +3,7 @@
 # 纯本地运行，模型与抖音项目共享
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SHARED_VENV="$SCRIPT_DIR/../douyin-short-drama-cutter/.venv"
+SHARED_VENV="$SCRIPT_DIR/.venv"
 
 PYTHON="$SHARED_VENV/bin/python3"
 if [ ! -f "$PYTHON" ]; then

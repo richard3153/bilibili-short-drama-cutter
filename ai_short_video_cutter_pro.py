@@ -23,7 +23,7 @@ import re
 import sys
 
 # Fix venv site-packages path (ensure packages like ChatTTS, faster-whisper are findable)
-_venv_sp = "/Users/ffzwai/.qclaw/workspace/douyin-short-drama-cutter/.venv/lib/python3.11/site-packages"
+_venv_sp = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv", "lib", "python3.11", "site-packages")
 if _venv_sp not in sys.path:
     sys.path.insert(0, _venv_sp)
 print(f"[DEBUG] Venv path injection: {_venv_sp} -> sys.path[0]={sys.path[0]}")

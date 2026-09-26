@@ -54,10 +54,10 @@ B站版在抖音流水线基础上替换了「入口 + 引擎 + 合规」三层�
 | `server_bili.py` | 标准库 `http.server` Web 工作站（端口 8766），服务 `bilibili_gui.html` |
 | `bilibili_patch.py` | B站适配补丁（画幅 / 字幕边距 / 时长常量） |
 | `bilibili_gui.html` | Web 可视化前端 |
-| `run.sh` / `run_gui.sh` | 命令行 / Web 界面启动脚本（自动定位 `../douyin-short-drama-cutter/.venv`） |
+| `run.sh` / `run_gui.sh` | 命令行 / Web 界面启动脚本（自动定位本目录 `.venv`） |
 
-> 共享依赖（`ai_short_video_cutter_pro.py` 及 helper、`.venv/`、`models/`、`bgm/`、`music.db`）
-> 来自抖音仓库，不重复入库。
+> 共享模块（`ai_short_video_cutter_pro.py` 及 helper）已作为副本**内置本仓库**，无需依赖抖音目录；
+> `.venv/`、`models/`、`bgm/`、`music.db` 等重资源仍不入库，需本地自备（可与抖音项目共用同一份）。
 
 ---
 
@@ -90,7 +90,7 @@ B站版在抖音流水线基础上替换了「入口 + 引擎 + 合规」三层�
 
 与抖音仓库一致（Python 3.11+ / FFmpeg / 本地大模型 ChatTTS、whisper.cpp、faster-whisper）：
 
-- Python 3.11+（共享抖音的 `.venv`）
+- Python 3.11+（本仓库自己的 `.venv`）
 - FFmpeg
 - 本地大模型：`ChatTTS`、`whisper.cpp` + GGML `medium`、`faster-whisper`（均来自抖音项目）
 - 第三方包：`Pillow`、`pydub`、`moviepy`、`numpy`、`opencv-python`、`edge-tts`、`torch` 等
@@ -134,7 +134,7 @@ bash run_gui.sh
 ```bash
 bash run.sh
 # 或单独指定
-PYTHONPATH=/path/to/douyin-short-drama-cutter .venv/bin/python ai_short_video_cutter_bili.py
+PYTHONPATH=. .venv/bin/python ai_short_video_cutter_bili.py
 ```
 
 ---

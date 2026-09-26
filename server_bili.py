@@ -13,7 +13,7 @@ from urllib.parse import urlparse, parse_qs
 
 # ---- Path ----
 WORK_DIR  = Path(__file__).parent.resolve()
-_VENV_SP  = "/Users/ffzwai/.qclaw/workspace/douyin-short-drama-cutter/.venv/lib/python3.11/site-packages"
+_VENV_SP  = str(WORK_DIR / ".venv" / "lib" / "python3.11" / "site-packages")
 
 if _VENV_SP not in sys.path:
     sys.path.insert(0, _VENV_SP)
