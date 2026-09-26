@@ -7,26 +7,17 @@
 
 ---
 
-## ⚠️ 与抖音仓库的关系（重要）
+## 与抖音仓库的关系（共享模块已内置）
 
-本仓库**不是完全独立的工程**，它复用抖音仓库的代码与重资源：
+本仓库在**根目录内置了抖音项目的共享源码副本**，因此可**独立运行**，无需克隆抖音仓库：
 
-- `ai_short_video_cutter_bili.py`（入口）会 `import ai_short_video_cutter_pro`（抖音主流程）与共享 helper：
-  `tts_chattts_wrapper.py`、`asr_whisper_cpp_wrapper.py`、`config_merger.py`、
-  `jellyfish_studio.py`、`_lowbiz_detector.py`。
-- 本地大模型（`ChatTTS` / `whisper.cpp` / `faster-whisper`）与 BGM、虚拟环境均来自抖音项目。
+- `ai_short_video_cutter_pro.py`（抖音主流程，B站入口直接 `import` 它）
+- `compliance_checker.py`、`tts_chattts_wrapper.py`、`asr_whisper_cpp_wrapper.py`、
+  `config_merger.py`、`jellyfish_studio.py`、`_lowbiz_detector.py`（共享 helper）
 
-**推荐部署方式：把两个仓库克隆为同级兄弟目录**，B站启动脚本会自动在 `../douyin-short-drama-cutter/.venv` 找到共享 venv：
+这些文件与抖音仓库保持一致（由本仓库维护副本）。其余重资源（本地大模型、BGM、虚拟环境）仍由本地自备。
 
-```bash
-# 建议的目录结构
-workspace/
-├── douyin-short-drama-cutter/   # github.com/richard3153/douyin-short-drama-cutter
-└── bilibili-short-drama-cutter/  # 本仓库
-```
-
-> 如果你只想单独运行 B站，请先按抖音仓库 README 准备好 `.venv`、`models/`、`bgm/` 等，
-> 并将 `PYTHONPATH` 指向抖音仓库根目录（见下方「运行」）。
+> 若你同时维护抖音仓库，可定期把上述文件从抖音仓库同步到本仓库以保持一致。
 
 ---
 
@@ -70,9 +61,34 @@ B站版在抖音流水线基础上替换了「入口 + 引擎 + 合规」三层�
 
 ---
 
+## 目录结构
+
+```
+.
+├── ai_short_drama_engine.py         # B站专属剪辑引擎（16:9 / 1920×1080 / 60–600s）
+├── ai_short_video_cutter_bili.py    # 命令行入口
+├── bilibili_compliance_checker.py   # B站社区规范合规
+├── server_bili.py                   # Web 工作站（端口 8766）
+├── bilibili_patch.py                # B站适配补丁
+├── bilibili_gui.html                 # Web 前端
+├── run.sh / run_gui.sh              # 启动脚本
+├── # ── 以下为从抖音仓库内置的共享模块（副本，保持一致即可）──
+├── ai_short_video_cutter_pro.py     # 抖音主流程
+├── compliance_checker.py
+├── tts_chattts_wrapper.py
+├── asr_whisper_cpp_wrapper.py
+├── config_merger.py
+├── jellyfish_studio.py
+├── _lowbiz_detector.py
+├── raw_videos/  bgm/  output_videos/  narration/  subtitles/  # 占位目录
+├── assets/  fonts/  logs/  drama_memory/  tmp_frames/          # 占位目录
+```
+
+带「占位」的目录仅保留结构（内含 `.gitkeep`），目录内实际文件不入库。
+
 ## 环境依赖
 
-与抖音仓库一致，且需先准备好抖音仓库的 `.venv` / `models` / `bgm`：
+与抖音仓库一致（Python 3.11+ / FFmpeg / 本地大模型 ChatTTS、whisper.cpp、faster-whisper）：
 
 - Python 3.11+（共享抖音的 `.venv`）
 - FFmpeg
@@ -83,17 +99,23 @@ B站版在抖音流水线基础上替换了「入口 + 引擎 + 合规」三层�
 
 ## 安装
 
+本仓库已内置抖音共享模块，**克隆本仓库即可独立运行**（无需克隆抖音仓库）：
+
 ```bash
-# 1. 克隆为兄弟目录（推荐）
-git clone https://github.com/richard3153/douyin-short-drama-cutter.git ../douyin-short-drama-cutter
+# 1. 克隆本仓库
 git clone https://github.com/richard3153/bilibili-short-drama-cutter.git
+cd bilibili-short-drama-cutter
 
-# 2. 按抖音仓库 README 准备 .venv / models / bgm（本仓库直接复用）
-#    （若已单独准备好，可跳过上一步，仅把 PYTHONPATH 指向抖音仓库根目录）
+# 2. 准备本地虚拟环境与模型（与抖音仓库一致）
+uv venv .venv
+uv pip install pillow pydub moviepy numpy opencv-python edge-tts torch
+#    ChatTTS / whisper.cpp(GGML medium) / faster-whisper 模型放到 models/
 
-# 3. 准备素材目录
+# 3. 准备素材目录（占位目录已随仓库创建，也可手动建）
 mkdir -p raw_videos bgm output_videos narration subtitles
 ```
+
+> 注：`.venv/`、`models/`、`bgm/` 等重资源不入库，需本地自备（与抖音仓库相同）。
 
 ---
 
